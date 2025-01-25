@@ -5,6 +5,10 @@ import pytesseract
 import cv2
 import pdf2image
 from PIL import Image
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Custom exception for Aadhaar verification failures
 class AadharVerificationError(Exception):
@@ -13,8 +17,10 @@ class AadharVerificationError(Exception):
 # Convert PDF to images
 def convert_pdf_to_images(pdf_path, dpi=300):
     try:
+        logging.info(f"Converting PDF {pdf_path} to images...")
         return pdf2image.convert_from_path(pdf_path, dpi=dpi)
     except Exception as e:
+        logging.error(f"PDF conversion failed: {str(e)}")
         raise AadharVerificationError(f"PDF conversion failed: {str(e)}")
 
 # Preprocess the image for OCR
@@ -27,6 +33,12 @@ def preprocess_image(image):
         cv2.THRESH_BINARY, 11, 2
     )
     denoised = cv2.fastNlMeansDenoising(thresh)
+    
+    # Save the processed image for debugging
+    processed_image_path = "processed_image.png"
+    cv2.imwrite(processed_image_path, denoised)
+    logging.info(f"Processed image saved at {processed_image_path}")
+    
     return denoised
 
 # Extract Aadhaar details using OCR
@@ -65,7 +77,7 @@ def process_aadhar_pdf(pdf_path):
         if len(images) < 2:
             raise AadharVerificationError("PDF must contain at least 2 pages")
 
-        # Process front and back images
+        # Process images (front and back)
         front_image = preprocess_image(images[0])
         back_image = preprocess_image(images[1])
 
@@ -85,8 +97,10 @@ def process_aadhar_pdf(pdf_path):
         }
 
     except AadharVerificationError as e:
+        logging.error(f"Aadhaar verification failed: {str(e)}")
         return {'status': 'FAILED', 'error': str(e)}
     except Exception as e:
+        logging.error(f"Unexpected error: {str(e)}")
         return {'status': 'FAILED', 'error': f'Unexpected error: {str(e)}'}
 
 # Entry point for testing the script
@@ -95,6 +109,7 @@ if __name__ == '__main__':
     import json
     
     if len(sys.argv) < 2:
+        logging.error("No PDF path provided")
         print(json.dumps({'status': 'FAILED', 'error': 'No PDF path provided'}))
         sys.exit(1)
     

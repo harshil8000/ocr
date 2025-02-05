@@ -54,7 +54,7 @@ module.exports = function (app) {
                             reject(new Error("Error parsing Python script output"));
                         }
                     });
-                });
+                })
 
                 res.status(200).json(result); // Return successful result
             } catch (error) {

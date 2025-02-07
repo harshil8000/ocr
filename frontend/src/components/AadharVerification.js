@@ -11,6 +11,7 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [dragActive, setDragActive] = useState(false);
 
+
   const handleDrag = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();

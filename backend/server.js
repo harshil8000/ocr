@@ -104,5 +104,20 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+app.get('/check-python', (req, res) => {
+    const { exec } = require('child_process');
+
+    // Run the python3 command to check the version
+    exec('python3 --version', (err, stdout, stderr) => {
+        if (err) {
+            console.error('Error checking Python version:', err);
+            res.status(500).send('Error checking Python version');
+            return;
+        }
+
+        res.send(`Python Version: ${stdout || stderr}`);
+    });
+});
+
 
 module.exports = app;

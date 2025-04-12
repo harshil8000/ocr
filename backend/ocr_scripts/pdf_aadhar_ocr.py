@@ -9,9 +9,7 @@ import cv2
 import numpy as np
 import magic  # for better file type detection
 
-pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
-
-    
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
 
 def extract_aadhar_details(text):
     aadhar_pattern = r'\d{4}\s?\d{4}\s?\d{4}'

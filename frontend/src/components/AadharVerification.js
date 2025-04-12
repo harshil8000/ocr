@@ -72,6 +72,8 @@ export default function Home() {
           formData.append('file', file);
 
           const response = await fetch('https://ocr-production-75fe.up.railway.app/api/extract-aadhar', {
+            // const response = await fetch('http://localhost:5000/api/extract-aadhar', {
+
             method: 'POST',
             body: formData,
           });

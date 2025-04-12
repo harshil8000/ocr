@@ -6,22 +6,22 @@ const path = require('path');
 const fs = require('fs');
 const app = express();
 
-// Set up storage for uploaded files
-const upload = multer({ dest: 'uploads/' });
+// Set up storage for uploaded files (use /tmp directory for Vercel)
+const upload = multer({ dest: '/tmp/uploads/' });
 
 // Middleware setup
 app.use(cors());
 app.use(express.json());
 
-// Ensure uploads directory exists
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
+// Ensure /tmp/uploads directory exists
+if (!fs.existsSync('/tmp/uploads')) {
+    fs.mkdirSync('/tmp/uploads');
 }
 
 // Serve the index.html file at the root route
 app.get("/", (req, res) => {
     console.log('Serving index.html');
-    res.sendFile(path.join(__dirname, '../index.html')); // Make sure index.html is at the root level
+    res.sendFile(path.join(__dirname, '../index.html')); // Ensure index.html is at the root level
 });
 
 // Endpoint to extract data from Aadhar file

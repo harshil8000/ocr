@@ -1,123 +1,3 @@
-# import os
-# import re
-# import numpy as np
-# import pytesseract
-# import cv2
-# import pdf2image
-# from PIL import Image
-# import logging
-
-# # Set up logging
-# logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# # Custom exception for Aadhaar verification failures
-# class AadharVerificationError(Exception):
-#     pass
-
-# # Convert PDF to images
-# def convert_pdf_to_images(pdf_path, dpi=300):
-#     try:
-#         logging.info(f"Converting PDF {pdf_path} to images...")
-#         return pdf2image.convert_from_path(pdf_path, dpi=dpi)
-#     except Exception as e:
-#         logging.error(f"PDF conversion failed: {str(e)}")
-#         raise AadharVerificationError(f"PDF conversion failed: {str(e)}")
-
-# # Preprocess the image for OCR
-# def preprocess_image(image):
-#     img_array = np.array(image)
-#     gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-#     thresh = cv2.adaptiveThreshold(
-#         gray, 255, 
-#         cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-#         cv2.THRESH_BINARY, 11, 2
-#     )
-#     denoised = cv2.fastNlMeansDenoising(thresh)
-    
-#     # Save the processed image for debugging
-#     processed_image_path = "processed_image.png"
-#     cv2.imwrite(processed_image_path, denoised)
-#     logging.info(f"Processed image saved at {processed_image_path}")
-    
-#     return denoised
-
-# # Extract Aadhaar details using OCR
-# def extract_aadhar_details(image):
-#     custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789'
-#     text = pytesseract.image_to_string(image, config=custom_config)
-    
-#     # Regex patterns for Aadhaar number and name
-#     aadhar_pattern = r'\b\d{4}\s?\d{4}\s?\d{4}\b'
-#     name_pattern = r'^[A-Z][a-z]+ [A-Z][a-z]+'
-
-#     # Extract Aadhaar numbers and names
-#     aadhar_numbers = [
-#         num.replace(' ', '') 
-#         for num in re.findall(aadhar_pattern, text) 
-#         if len(num.replace(' ', '')) == 12
-#     ]
-#     names = re.findall(name_pattern, text, re.MULTILINE)
-
-#     return {
-#         'aadhar_numbers': aadhar_numbers,
-#         'names': names,
-#         'raw_text': text
-#     }
-
-# # Validate extracted Aadhaar details
-# def validate_aadhar_details(details):
-#     return bool(details['aadhar_numbers'])
-
-# # Process Aadhaar PDF
-# def process_aadhar_pdf(pdf_path):
-#     try:
-#         # Convert PDF pages to images
-#         images = convert_pdf_to_images(pdf_path)
-
-#         if len(images) < 2:
-#             raise AadharVerificationError("PDF must contain at least 2 pages")
-
-#         # Process images (front and back)
-#         front_image = preprocess_image(images[0])
-#         back_image = preprocess_image(images[1])
-
-#         # Extract details from both pages
-#         front_details = extract_aadhar_details(front_image)
-#         back_details = extract_aadhar_details(back_image)
-
-#         # Validate extracted details
-#         if not (validate_aadhar_details(front_details) and 
-#                 validate_aadhar_details(back_details)):
-#             raise AadharVerificationError("Invalid Aadhaar details")
-
-#         return {
-#             'status': 'VERIFIED',
-#             'front_details': front_details,
-#             'back_details': back_details
-#         }
-
-#     except AadharVerificationError as e:
-#         logging.error(f"Aadhaar verification failed: {str(e)}")
-#         return {'status': 'FAILED', 'error': str(e)}
-#     except Exception as e:
-#         logging.error(f"Unexpected error: {str(e)}")
-#         return {'status': 'FAILED', 'error': f'Unexpected error: {str(e)}'}
-
-# # Entry point for testing the script
-# if __name__ == '__main__':
-#     import sys
-#     import json
-    
-#     if len(sys.argv) < 2:
-#         logging.error("No PDF path provided")
-#         print(json.dumps({'status': 'FAILED', 'error': 'No PDF path provided'}))
-#         sys.exit(1)
-    
-#     pdf_path = sys.argv[1]
-#     result = process_aadhar_pdf(pdf_path)
-#     print(json.dumps(result))
-
-
 import sys
 import json
 import pytesseract
@@ -132,38 +12,39 @@ import magic  # for better file type detection
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
 
 def extract_aadhar_details(text):
-    # Extract Aadhaar number (12 digits with possible spaces)
     aadhar_pattern = r'\d{4}\s?\d{4}\s?\d{4}'
     aadhar_number = re.search(aadhar_pattern, text)
-    
-    # Extract name (assumes name is after "Name:" or similar indicators)
-    name_pattern = r'(?i)(?:name|नाम)[\s:]+([^\n]+)'
-    name = re.search(name_pattern, text)
-    
-    # Extract DOB (in DD/MM/YYYY format)
+
     dob_pattern = r'\d{2}/\d{2}/\d{4}'
     dob = re.search(dob_pattern, text)
+
+    gender = None
+    name = None
+    lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
     
-    # Extract gender (searches for Male, Female, पुरुष, महिला)
-    gender_pattern = r'(?i)(MALE|FEMALE|मर्द|महिला|पुरुष)'
-    gender = re.search(gender_pattern, text)
+    # Guess name from line above DOB
+    for i, line in enumerate(lines):
+        if dob and dob.group() in line and i > 0:
+            name = lines[i - 1]
+        if not gender and 'male' in line.lower():
+            gender = 'Male'
+        elif not gender and 'female' in line.lower():
+            gender = 'Female'
+        elif not gender and ('पुरुष' in line or 'महिला' in line):
+            gender = 'पुरुष' if 'पुरुष' in line else 'महिला'
 
-    # Extract address with possible PIN code (6 digits)
-    address_pattern = r'(\d{6})'  # Regex for capturing a 6-digit PIN code
-    address = re.search(address_pattern, text)
+    pin_pattern = r'\b\d{6}\b'
+    pin = re.search(pin_pattern, text)
 
-    # Prepare the results
-    results = {
+    return {
         "success": True,
         "aadhar_number": aadhar_number.group() if aadhar_number else None,
-        "name": name.group(1).strip() if name else None,
+        "name": name,
         "dob": dob.group() if dob else None,
-        "gender": gender.group() if gender else None,
-        "pin_code": address.group(1) if address else None,
+        "gender": gender,
+        "pin_code": pin.group() if pin else None,
         "raw_text": text
     }
-    
-    return results
 
 def enhance_image(image):
     """Enhance image quality for better OCR"""

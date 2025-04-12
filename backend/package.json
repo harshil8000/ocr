@@ -1,14 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "1. Create virtual environment\r 2. Install dependencies:",
-  "main": "server.js",
+  "description": "OCR backend",
+  "main": "api/index.js", 
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node api/index.js"  
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
@@ -16,5 +13,6 @@
     "formidable": "^3.5.2",
     "multer": "^1.4.3",
     "python-shell": "^3.0.1"
-  }
+  },
+  "license": "ISC"
 }

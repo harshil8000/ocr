@@ -4,10 +4,12 @@ const cors = require('cors');
 const { PythonShell } = require('python-shell');
 const path = require('path');
 const fs = require('fs');
-
 const app = express();
+
+// Set up storage for uploaded files
 const upload = multer({ dest: 'uploads/' });
 
+// Middleware setup
 app.use(cors());
 app.use(express.json());
 
@@ -16,6 +18,13 @@ if (!fs.existsSync('uploads')) {
     fs.mkdirSync('uploads');
 }
 
+// Serve the index.html file at the root route
+app.get("/", (req, res) => {
+    console.log('Serving index.html');
+    res.sendFile(path.join(__dirname, '../index.html')); // Make sure index.html is at the root level
+});
+
+// Endpoint to extract data from Aadhar file
 app.post('/api/extract-aadhar', upload.single('file'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ success: false, error: 'No file uploaded' });
@@ -24,17 +33,19 @@ app.post('/api/extract-aadhar', upload.single('file'), async (req, res) => {
     console.log('File uploaded:', req.file.path); // Debug log
 
     try {
-        // Path to the Python script
-        const scriptPath = path.join(__dirname, 'ocr_scripts'); // Resolves path to ocr_scripts folder
+        // Path to the Python script folder
+        const scriptPath = path.join(__dirname, '../ocr_scripts'); // Make sure the path is correct
 
+        // PythonShell options
         const options = {
             mode: 'text',
-            pythonPath: 'python', // Ensure this is pointing to the correct Python executable
+            pythonPath: 'python', // Ensure this points to the correct Python executable
             pythonOptions: ['-u'], // unbuffered output
-            scriptPath: scriptPath, // The path to the folder containing your python script
-            args: [req.file.path]  // The uploaded file
+            scriptPath: scriptPath, // Path to your OCR script folder
+            args: [req.file.path]  // Pass uploaded file path to Python script
         };
 
+        // Run Python script to extract data
         PythonShell.run('pdf_aadhar_ocr.py', options, (err, results) => {
             if (err) {
                 console.error('PythonShell error:', err); // Log Python errors
@@ -48,13 +59,14 @@ app.post('/api/extract-aadhar', upload.single('file'), async (req, res) => {
                 });
             }
 
-            // Clean up uploaded file
+            // Clean up uploaded file after processing
             fs.unlinkSync(req.file.path);
 
             console.log('Python script results:', results); // Debug log
 
             if (results && results.length > 0) {
                 try {
+                    // Assuming results[0] is a JSON string, parse and send back
                     const extractedData = JSON.parse(results[0]);
                     res.json({
                         success: true,
@@ -75,7 +87,7 @@ app.post('/api/extract-aadhar', upload.single('file'), async (req, res) => {
             }
         });
     } catch (error) {
-        // Clean up uploaded file
+        // Clean up uploaded file on unexpected errors
         if (fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
@@ -87,12 +99,10 @@ app.post('/api/extract-aadhar', upload.single('file'), async (req, res) => {
     }
 });
 
+// Set port to 5000 or environment variable value
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-app.get("/", (req, res) => {
-    // Send the index.html file
-console.log('dsdddddddddd')
-});
+module.exports = app;

@@ -2,18 +2,15 @@
     "version": 2,
     "builds": [
       {
-        "src": "api/extract-aadhar.js",
+        "src": "./index.js",
         "use": "@vercel/node"
       }
     ],
     "routes": [
       {
-        "src": "/api/extract-aadhar",
-        "dest": "/api/extract-aadhar.js"
+        "src": "/(.*)",
+        "dest": "/"
       }
     ],
-    "env": {
-      "NODE_ENV": "production"
-    }
+    "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }]
   }
-  

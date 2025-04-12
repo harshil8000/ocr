@@ -1,12 +1,14 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "1. Create virtual environment\r 2. Install dependencies:",
-  "main": "server.js",
+  "description": "OCR Backend with Node.js",
+  "main": "api/server.js",
   "scripts": {
+    "start": "node api/server.js",
+    "dev": "vercel dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["OCR", "backend", "node.js"],
   "author": "",
   "license": "ISC",
   "dependencies": {

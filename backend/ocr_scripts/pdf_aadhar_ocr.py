@@ -9,16 +9,8 @@ import cv2
 import numpy as np
 import magic  # for better file type detection
 
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Adjust if necessary
+pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
 
-
-# # Determine the operating system
-# if sys.platform == "win32":
-#     # Windows-specific path
-#     pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-# else:
-#     # Unix-based path (for Railway or other Linux environments)
-#     pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
     
 
 def extract_aadhar_details(text):

@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { Upload, X, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
 // import { Alert, AlertDescription } from '@/components/ui/alert';
 
+
 export default function Home() {
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);

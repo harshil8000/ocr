@@ -12,6 +12,7 @@ module.exports = function (app) {
                 console.error("Error parsing form:", err);
                 return res.status(500).json({ status: 'FAILED', error: 'File upload failed' });
             }
+            
 
             const pdfFile = files.pdf_file;
             if (!pdfFile) {

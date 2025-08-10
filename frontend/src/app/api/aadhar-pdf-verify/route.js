@@ -9,7 +9,6 @@ const router = express.Router();
 // Config to disable default body parsing to handle file uploads with formidable
 router.post('http://localhost:5000/aadhar-pdf-verify', (req, res) => {
     const form = new IncomingForm();
-
     form.parse(req, async (err, fields, files) => {
         if (err) {
             console.error("Error parsing form:", err);  // Log error for debugging
